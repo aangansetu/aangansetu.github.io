@@ -1,0 +1,523 @@
+<title>AanganSetu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;600;700&display=swap">
+<style>
+/* Layout: slim header, compact hero carrying the search panel, filter-aware card grid, overlay for detail and add-listing. */
+:root {
+  --bg: #EEF2F0;
+  --surface: #FFFFFF;
+  --fg: #13201D;
+  --muted: #51625E;
+  --line: #D3DCD8;
+  --accent: #0E5A52;
+  --accent-fg: #FFFFFF;
+  --soft: #DDEAE6;
+  --signal: #8A5A00;
+  --signal-bg: #FBEFCF;
+  --display: "Bricolage Grotesque", "Noto Sans Devanagari", "Segoe UI", system-ui, sans-serif;
+  --body: "Source Sans 3", "Noto Sans Devanagari", "Segoe UI", system-ui, sans-serif;
+}
+.tagline { font-family: var(--body); font-weight: 600; font-size: 1.15rem; color: var(--accent); margin: 0; }
+.foot-tag { color: var(--accent); font-weight: 600; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0D1514; --surface: #142120; --fg: #E6EFEC; --muted: #9AB0AA; --line: #263835;
+    --accent: #4DB5A6; --accent-fg: #04201C; --soft: #1B2E2B; --signal: #F0C25A; --signal-bg: #3A2D0C;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0D1514; --surface: #142120; --fg: #E6EFEC; --muted: #9AB0AA; --line: #263835;
+  --accent: #4DB5A6; --accent-fg: #04201C; --soft: #1B2E2B; --signal: #F0C25A; --signal-bg: #3A2D0C;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 16px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 0;
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.1; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+
+header.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 16px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-weight: 700; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; }
+.mark { width: 30px; height: 30px; background: var(--accent); border-radius: 6px 6px 0 0; position: relative; flex: none; }
+.mark::after { content: ""; position: absolute; left: 7px; right: 7px; bottom: 0; height: 12px; background: var(--bg); border-radius: 3px 3px 0 0; }
+nav.links { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; font-weight: 500; }
+nav.links a { color: var(--fg); text-decoration: none; }
+nav.links a:hover { text-decoration: underline; }
+
+.btn { border: 1px solid var(--accent); background: var(--accent); color: var(--accent-fg); padding: 10px 16px; border-radius: 6px; font-weight: 600; cursor: pointer; min-height: 44px; }
+.btn.ghost { background: transparent; color: var(--accent); }
+.btn:hover { filter: brightness(1.08); }
+
+.hero { padding-block: 28px 20px; display: grid; gap: 20px; }
+.hero h1 { font-size: clamp(2rem, 5.2vw, 3.4rem); max-width: 18ch; }
+.hero p { margin: 0; color: var(--muted); max-width: 52ch; font-size: 1.05rem; }
+
+.search { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px; display: grid; gap: 12px; }
+.tabs { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; width: fit-content; }
+.tabs button { background: transparent; border: 0; padding: 9px 22px; font-weight: 600; cursor: pointer; min-height: 40px; }
+.tabs button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); }
+.fields { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.fields .wide { grid-column: span 2; }
+@media (max-width: 520px) { .fields .wide { grid-column: span 1; } }
+label.f { display: grid; gap: 4px; font-size: 0.8rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; min-width: 0; }
+.in { width: 100%; border: 1px solid var(--line); background: var(--bg); border-radius: 6px; padding: 10px 12px; min-height: 44px; text-transform: none; letter-spacing: 0; font-weight: 400; font-size: 1rem; color: var(--fg); }
+textarea.in { min-height: 90px; resize: vertical; }
+
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding-block: 10px 14px; }
+.bar h2 { font-size: 1.3rem; }
+.bar .in { width: auto; min-width: 0; }
+
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); padding-bottom: 36px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; cursor: pointer; text-align: left; padding: 0; }
+.card:hover { border-color: var(--accent); }
+.art { height: 150px; background: var(--soft); position: relative; }
+.art svg { display: block; width: 100%; height: 100%; }
+.tag { position: absolute; top: 10px; left: 10px; background: var(--signal-bg); color: var(--signal); font-size: 0.75rem; font-weight: 600; padding: 3px 8px; border-radius: 4px; }
+.tag.mine { left: auto; right: 10px; background: var(--accent); color: var(--accent-fg); }
+.body { padding: 14px; display: grid; gap: 6px; }
+.price { font-family: var(--display); font-weight: 700; font-size: 1.4rem; }
+.price small { font-family: var(--body); font-weight: 500; font-size: 0.9rem; color: var(--muted); }
+.title { font-weight: 600; overflow-wrap: anywhere; }
+.meta { color: var(--muted); font-size: 0.95rem; overflow-wrap: anywhere; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.92rem; padding-top: 6px; border-top: 1px solid var(--line); margin-top: 4px; }
+.empty { grid-column: 1 / -1; background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; padding: 32px 18px; text-align: center; color: var(--muted); }
+
+.sellband { background: var(--accent); color: var(--accent-fg); border-radius: 10px; padding: 22px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 32px; }
+.sellband > div { min-width: 0; flex: 1 1 320px; }
+.sellband h2 { font-size: 1.4rem; margin-bottom: 4px; }
+.sellband p { margin: 0; opacity: 0.92; }
+.sellband .btn { background: var(--accent-fg); color: var(--accent); border-color: var(--accent-fg); }
+.consent { display: flex; gap: 10px; align-items: flex-start; font-size: 0.92rem; color: var(--muted); }
+.consent input { margin-top: 4px; width: 18px; height: 18px; flex: none; }
+.process { background: var(--surface); border-block: 1px solid var(--line); margin-inline: calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 28px max(16px, env(safe-area-inset-left, 0px)); }
+.process .cols { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-top: 16px; }
+.process h3 { font-size: 1.05rem; margin-bottom: 4px; }
+.process p { margin: 0; color: var(--muted); }
+
+footer { padding-block: 26px 40px; display: grid; gap: 8px; color: var(--muted); font-size: 0.92rem; }
+footer strong { color: var(--fg); }
+.rera { display: inline-block; border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; background: var(--surface); color: var(--fg); width: fit-content; }
+
+.overlay { position: fixed; inset: 0; background: rgba(8, 16, 14, 0.62); display: none; align-items: flex-start; justify-content: center; overflow-y: auto; z-index: 20;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.overlay.open { display: flex; }
+.sheet { background: var(--surface); width: 100%; max-width: 760px; border-radius: 12px; border: 1px solid var(--line); overflow: hidden; margin-block: auto; }
+.sheet .art { height: 190px; }
+.pad { padding: 18px; display: grid; gap: 14px; }
+.sheet-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.close { background: var(--bg); border: 1px solid var(--line); border-radius: 6px; min-width: 44px; min-height: 44px; cursor: pointer; font-weight: 600; }
+dl.spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 0; }
+dl.spec div { background: var(--bg); border-radius: 6px; padding: 10px; }
+dl.spec dt { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
+dl.spec dd { margin: 2px 0 0; font-weight: 600; overflow-wrap: anywhere; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: var(--soft); border-radius: 999px; padding: 4px 10px; font-size: 0.88rem; }
+.enq { border-top: 1px solid var(--line); padding-top: 14px; display: grid; gap: 10px; }
+.enq .row { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.ready { background: var(--soft); border-radius: 8px; padding: 12px; display: grid; gap: 10px; }
+.ready pre { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--body); font-size: 0.95rem; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; }
+.note { font-size: 0.88rem; color: var(--muted); margin: 0; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(18px, env(safe-area-inset-bottom, 0px)); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 8px; z-index: 30; max-width: 90vw; }
+.toast[hidden] { display: none; }
+.mbar { display: none; }
+@media (max-width: 640px) {
+  body { padding-bottom: 84px; }
+  .mbar { display: flex; gap: 10px; position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--surface); border-top: 1px solid var(--line);
+    padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+  .mbar .btn { flex: 1; justify-content: center; text-align: center; }
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  nav.links a { display: none; }
+  .hero h1 { max-width: none; }
+}
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color 0.15s; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="mark" aria-hidden="true"></span><span id="brandName">AanganSetu</span></div>
+    <nav class="links" aria-label="Main">
+      <a href="#listings">Listings</a>
+      <a href="#how">How it works</a>
+      <a href="#contact">Contact</a>
+      <button class="btn ghost" id="openAdd" type="button">Sell your property</button>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <p class="tagline" id="tagHero" lang="hi">आपके अपने घर तक का सेतु</p>
+    <h1>Buy or rent with one agent who picks up.</h1>
+    <p>Browse resale homes and rentals, shortlist what fits, and send one enquiry straight to WhatsApp.</p>
+
+    <form class="search" id="searchForm" role="search" aria-label="Search properties">
+      <div class="tabs" role="group" aria-label="Buy or rent">
+        <button type="button" data-mode="buy" aria-pressed="true">Buy</button>
+        <button type="button" data-sell="1" aria-pressed="false">Sell</button>
+        <button type="button" data-mode="rent" aria-pressed="false">Rent</button>
+      </div>
+      <div class="fields">
+        <label class="f wide" for="q">Locality or city
+          <input class="in" id="q" type="search" placeholder="e.g. Kharghar, Baner, Thane West" autocomplete="off">
+        </label>
+        <label class="f" for="bhk">Bedrooms
+          <select class="in" id="bhk">
+            <option value="">Any</option><option value="1">1 BHK</option><option value="2">2 BHK</option>
+            <option value="3">3 BHK</option><option value="4">4+ BHK</option>
+          </select>
+        </label>
+        <label class="f" for="ptype">Property type
+          <select class="in" id="ptype">
+            <option value="">Any</option><option>Apartment</option><option>Villa</option><option>Shop</option><option>Plot</option>
+          </select>
+        </label>
+        <label class="f" for="budget">Max budget
+          <select class="in" id="budget"></select>
+        </label>
+      </div>
+    </form>
+  </section>
+
+  <section id="listings" aria-labelledby="resTitle">
+    <div class="bar">
+      <h2 id="resTitle"><span id="count" class="num">0</span> properties</h2>
+      <label class="f" for="sort" style="grid-auto-flow:column;align-items:center;gap:8px">Sort
+        <select class="in" id="sort">
+          <option value="new">Newest first</option>
+          <option value="low">Price: low to high</option>
+          <option value="high">Price: high to low</option>
+          <option value="area">Largest area</option>
+        </select>
+      </label>
+    </div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="sellband" id="sell" aria-labelledby="sellTitle">
+    <div>
+      <h2 id="sellTitle">Have a property to sell or rent?</h2>
+      <p>List it in a few minutes. Owners and agents are both welcome, and each listing shows who posted it.</p>
+    </div>
+    <button class="btn" type="button" data-sell="1">Sell or rent your property</button>
+  </section>
+
+  <section class="process" id="how">
+    <h2>How it works</h2>
+    <div class="cols">
+      <div><h3>Shortlist</h3><p>Filter by locality, bedrooms and budget. Open any property for the full details.</p></div>
+      <div><h3>Send one enquiry</h3><p>Your message goes to the agent on WhatsApp with the property already named.</p></div>
+      <div><h3>Visit and verify</h3><p>Visit the property, check the documents and the carpet area before you pay a token.</p></div>
+    </div>
+  </section>
+
+  <footer id="contact">
+    <strong id="brandFoot">AanganSetu</strong>
+    <span class="foot-tag" id="tagFoot" lang="hi">आपके अपने घर तक का सेतु</span>
+    <span>Phone: <span id="phoneShow" class="num"></span></span>
+    <span class="rera" id="reraBox"></span>
+    <span>Listings marked "Sample" are demo entries. Replace them with your own before launch.</span>
+  </footer>
+</div>
+
+<!-- Detail overlay -->
+<div class="overlay" id="detailOv" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+  <div class="sheet" id="detailSheet"></div>
+</div>
+
+<!-- Add listing overlay -->
+<div class="overlay" id="addOv" role="dialog" aria-modal="true" aria-labelledby="aTitle">
+  <div class="sheet">
+    <form class="pad" id="addForm">
+      <div class="sheet-head">
+        <div><h2 id="aTitle">Sell or rent your property</h2><p class="note">Fill in the details. For now the listing is saved in this browser only, so use the WhatsApp button to send it to the agent. A shared database comes later.</p></div>
+        <button class="close" type="button" data-close="addOv" aria-label="Close">Close</button>
+      </div>
+      <div class="enq">
+        <div class="row">
+          <label class="f" for="aMode">For<select class="in" id="aMode"><option value="buy">Sale</option><option value="rent">Rent</option></select></label>
+          <label class="f" for="aType">Type<select class="in" id="aType"><option>Apartment</option><option>Villa</option><option>Shop</option><option>Plot</option></select></label>
+        </div>
+        <label class="f" for="aTitleIn">Headline<input class="in" id="aTitleIn" required maxlength="90" placeholder="2 BHK with covered parking"></label>
+        <div class="row">
+          <label class="f" for="aLoc">Locality<input class="in" id="aLoc" required maxlength="50"></label>
+          <label class="f" for="aCity">City<input class="in" id="aCity" required maxlength="40"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="aBhk">Bedrooms (0 for plot or shop)<input class="in" id="aBhk" type="number" min="0" max="10" value="2" required></label>
+          <label class="f" for="aArea">Carpet area (sq ft)<input class="in" id="aArea" type="number" min="1" required></label>
+        </div>
+        <div class="row">
+          <label class="f" for="aPrice">Price in rupees (rent per month if renting)<input class="in" id="aPrice" type="number" min="1" required></label>
+          <label class="f" for="aFloor">Floor<input class="in" id="aFloor" maxlength="30" placeholder="7 of 14"></label>
+        </div>
+        <div class="row">
+          <label class="f" for="aFurn">Furnishing<select class="in" id="aFurn"><option>Unfurnished</option><option>Semi-furnished</option><option>Furnished</option></select></label>
+          <label class="f" for="aAge">Age of property<input class="in" id="aAge" maxlength="30" placeholder="5 years"></label>
+        </div>
+        <label class="f" for="aDesc">Description<textarea class="in" id="aDesc" maxlength="500"></textarea></label>
+        <div class="row">
+          <label class="f" for="aName">Your name<input class="in" id="aName" required maxlength="60" autocomplete="name"></label>
+          <label class="f" for="aPhone">Your phone<input class="in" id="aPhone" required maxlength="15" inputmode="tel" autocomplete="tel"></label>
+        </div>
+        <label class="f" for="aBy">I am the<select class="in" id="aBy"><option>Owner</option><option>Agent</option></select></label>
+        <label class="consent" for="aConsent"><input type="checkbox" id="aConsent" required><span>I agree that my name and phone number can be used to contact me about this property.</span></label>
+        <p class="note" id="aPricePreview"></p>
+        <div class="actions"><button class="btn" type="submit">Save listing</button><button class="btn ghost" type="button" id="aWa">Send details on WhatsApp</button><button class="btn ghost" type="button" data-close="addOv">Cancel</button></div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="mbar" aria-label="Quick actions">
+  <a class="btn" id="mWa" href="#" target="_blank" rel="noopener">Chat on WhatsApp</a>
+  <button class="btn ghost" type="button" data-sell="1">Sell or rent</button>
+</div>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+/* ---------- Edit these before launch ---------- */
+var CONFIG = {
+  brand: "AanganSetu",
+  tagline: "आपके अपने घर तक का सेतु",
+  phoneDisplay: "+91 XXXXX XXXXX",
+  whatsapp: "91XXXXXXXXXX",          // country code + number, digits only
+  reraNumber: ""                       // add your MahaRERA agent number once registered
+};
+
+/* ---------- Sample data (replace with your own) ---------- */
+var SAMPLE = [
+  { id:"s1", sample:true, mode:"buy",  type:"Apartment", title:"Bright 2 BHK near the metro", locality:"Kharghar", city:"Navi Mumbai", bhk:2, price:9800000, area:780, floor:"9 of 22", furn:"Semi-furnished", age:"4 years", desc:"Corner unit with open view, two balconies and a covered parking slot. Society has a gym and a garden.", amen:["Lift","Covered parking","Gym","24x7 security"], t:6 },
+  { id:"s2", sample:true, mode:"buy",  type:"Apartment", title:"Spacious 3 BHK, ready to move", locality:"Baner", city:"Pune", bhk:3, price:16500000, area:1210, floor:"12 of 18", furn:"Unfurnished", age:"2 years", desc:"East-facing home with a separate utility area and two parking slots.", amen:["Clubhouse","Swimming pool","Power backup","Lift"], t:5 },
+  { id:"s3", sample:true, mode:"buy",  type:"Apartment", title:"Compact 1 BHK for first-time buyers", locality:"Thane West", city:"Thane", bhk:1, price:6200000, area:480, floor:"5 of 12", furn:"Unfurnished", age:"8 years", desc:"Well-kept building close to the station and schools.", amen:["Lift","Intercom","Water storage"], t:4 },
+  { id:"s4", sample:true, mode:"buy",  type:"Villa", title:"Independent villa with a private garden", locality:"Lonavala", city:"Pune district", bhk:4, price:38500000, area:2600, floor:"Ground + 1", furn:"Furnished", age:"6 years", desc:"Weekend home on a quiet lane with a lawn, car porch and valley view.", amen:["Garden","Car porch","CCTV","Borewell"], t:3 },
+  { id:"s5", sample:true, mode:"rent", type:"Apartment", title:"Furnished 2 BHK for families", locality:"Wakad", city:"Pune", bhk:2, price:32000, area:920, floor:"6 of 15", furn:"Furnished", age:"3 years", desc:"Fully furnished with modular kitchen, AC in both bedrooms and one parking slot.", amen:["Lift","Gym","Power backup","Visitor parking"], t:2 },
+  { id:"s6", sample:true, mode:"rent", type:"Apartment", title:"1 BHK close to the IT park", locality:"Airoli", city:"Navi Mumbai", bhk:1, price:19500, area:520, floor:"3 of 10", furn:"Semi-furnished", age:"7 years", desc:"Short walk to the bus depot and the main road. Bachelors and couples welcome.", amen:["Lift","Water supply 24x7"], t:1 },
+  { id:"s7", sample:true, mode:"rent", type:"Shop", title:"Ground-floor shop on a main road", locality:"Dombivli East", city:"Thane district", bhk:0, price:45000, area:310, floor:"Ground", furn:"Unfurnished", age:"10 years", desc:"High footfall corner with a shutter and one washroom. Suitable for retail or a clinic.", amen:["Road facing","Washroom"], t:7 },
+  { id:"s8", sample:true, mode:"buy",  type:"Plot", title:"NA plot in a gated layout", locality:"Panvel", city:"Navi Mumbai", bhk:0, price:7400000, area:1500, floor:"", furn:"", age:"", desc:"Clear title plot with internal roads and water line. Check the layout approval before booking.", amen:["Gated layout","Internal roads"], t:8 }
+];
+
+/* ---------- Helpers ---------- */
+var KEY = "broker_site_listings_v1";
+function load() { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch (e) { return []; } }
+function save(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); return true; } catch (e) { return false; } }
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+function trim2(n) { return (Math.round(n * 100) / 100).toString(); }
+function money(n, mode) {
+  if (mode === "rent") return "₹" + Number(n).toLocaleString("en-IN");
+  if (n >= 1e7) return "₹" + trim2(n / 1e7) + " Cr";
+  if (n >= 1e5) return "₹" + trim2(n / 1e5) + " Lakh";
+  return "₹" + Number(n).toLocaleString("en-IN");
+}
+function allListings() { return load().concat(SAMPLE); }
+function find(id) { var a = allListings(); for (var i = 0; i < a.length; i++) if (a[i].id === id) return a[i]; return null; }
+function bhkLabel(l) { return l.bhk > 0 ? l.bhk + " BHK" : l.type; }
+
+/* Simple skyline illustration, seeded by listing */
+function art(l) {
+  var seed = (l.t || 1) * 7 + (l.id ? l.id.length : 3), w = 320, h = 150, out = "", x = 8, i = 0;
+  if (l.type === "Plot") {
+    out = '<rect x="40" y="70" width="240" height="60" fill="var(--bg)" stroke="var(--accent)" stroke-width="2" stroke-dasharray="8 6"/><line x1="40" y1="100" x2="280" y2="100" stroke="var(--accent)" stroke-width="1" opacity=".5"/>';
+  } else if (l.type === "Villa") {
+    out = '<polygon points="70,80 160,30 250,80" fill="var(--accent)"/><rect x="85" y="80" width="150" height="55" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/><rect x="150" y="100" width="22" height="35" fill="var(--accent)"/><rect x="100" y="92" width="26" height="22" fill="var(--soft)" stroke="var(--accent)"/><rect x="196" y="92" width="26" height="22" fill="var(--soft)" stroke="var(--accent)"/>';
+  } else {
+    while (x < w - 20) {
+      var bw = 26 + ((seed * (i + 3)) % 4) * 6, bh = 50 + ((seed * (i + 5) * 13) % 70);
+      out += '<rect x="' + x + '" y="' + (h - bh) + '" width="' + bw + '" height="' + bh + '" fill="' + (i % 2 ? "var(--accent)" : "var(--bg)") + '" stroke="var(--accent)" stroke-width="2"/>';
+      for (var wy = h - bh + 8; wy < h - 10; wy += 14) out += '<rect x="' + (x + 6) + '" y="' + wy + '" width="5" height="6" fill="' + (i % 2 ? "var(--soft)" : "var(--accent)") + '" opacity=".7"/>';
+      x += bw + 6; i++;
+    }
+  }
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><rect width="' + w + '" height="' + h + '" fill="var(--soft)"/>' + out + '<rect y="' + (h - 6) + '" width="' + w + '" height="6" fill="var(--accent)"/></svg>';
+}
+
+/* ---------- State and rendering ---------- */
+var S = { mode: "buy", q: "", bhk: "", type: "", budget: "", sort: "new" };
+var BUDGETS = {
+  buy:  [["", "Any"], ["5000000", "Up to ₹50 Lakh"], ["10000000", "Up to ₹1 Cr"], ["20000000", "Up to ₹2 Cr"], ["50000000", "Up to ₹5 Cr"]],
+  rent: [["", "Any"], ["15000", "Up to ₹15,000"], ["25000", "Up to ₹25,000"], ["40000", "Up to ₹40,000"], ["75000", "Up to ₹75,000"]]
+};
+function fillBudget() {
+  var el = document.getElementById("budget");
+  el.innerHTML = BUDGETS[S.mode].map(function (b) { return '<option value="' + b[0] + '">' + b[1] + "</option>"; }).join("");
+  el.value = S.budget;
+}
+function filtered() {
+  var q = S.q.trim().toLowerCase();
+  var list = allListings().filter(function (l) {
+    if (l.mode !== S.mode) return false;
+    if (q && (l.locality + " " + l.city + " " + l.title).toLowerCase().indexOf(q) < 0) return false;
+    if (S.bhk) { if (S.bhk === "4" ? l.bhk < 4 : l.bhk !== Number(S.bhk)) return false; }
+    if (S.type && l.type !== S.type) return false;
+    if (S.budget && l.price > Number(S.budget)) return false;
+    return true;
+  });
+  list.sort(function (a, b) {
+    if (S.sort === "low") return a.price - b.price;
+    if (S.sort === "high") return b.price - a.price;
+    if (S.sort === "area") return b.area - a.area;
+    return (b.sample ? 0 : 100) + (b.t || 0) - ((a.sample ? 0 : 100) + (a.t || 0)) || 0;
+  });
+  return list;
+}
+function render() {
+  var list = filtered();
+  document.getElementById("count").textContent = list.length;
+  var g = document.getElementById("grid");
+  if (!list.length) {
+    g.innerHTML = '<div class="empty">No properties match these filters. Try a wider budget or clear the locality.</div>';
+    return;
+  }
+  g.innerHTML = list.map(function (l) {
+    return '<button type="button" class="card" data-id="' + esc(l.id) + '" aria-label="Open ' + esc(l.title) + '">' +
+      '<div class="art">' + art(l) + (l.sample ? '<span class="tag">Sample</span>' : '<span class="tag mine">Your listing</span>') + '</div>' +
+      '<div class="body">' +
+        '<div class="price num">' + money(l.price, l.mode) + (l.mode === "rent" ? ' <small>/ month</small>' : '') + '</div>' +
+        '<div class="title">' + esc(l.title) + '</div>' +
+        '<div class="meta">' + esc(l.locality) + ', ' + esc(l.city) + '</div>' +
+        '<div class="facts num"><span>' + esc(bhkLabel(l)) + '</span><span>' + Number(l.area).toLocaleString("en-IN") + ' sq ft carpet</span>' + (l.furn ? '<span>' + esc(l.furn) + '</span>' : '') + '</div>' +
+      '</div></button>';
+  }).join("");
+}
+
+/* ---------- Detail overlay and enquiry ---------- */
+var lastFocus = null;
+function openOv(id) { lastFocus = document.activeElement; document.getElementById(id).classList.add("open"); }
+function closeOv(id) { document.getElementById(id).classList.remove("open"); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+function waLink(text) { return "https://wa.me/" + CONFIG.whatsapp + "?text=" + encodeURIComponent(text); }
+
+function openDetail(id) {
+  var l = find(id); if (!l) return;
+  var spec = [["Type", l.type], ["Bedrooms", l.bhk > 0 ? l.bhk : "—"], ["Carpet area", Number(l.area).toLocaleString("en-IN") + " sq ft"]];
+  if (l.floor) spec.push(["Floor", l.floor]);
+  if (l.furn) spec.push(["Furnishing", l.furn]);
+  if (l.by) spec.push(["Listed by", l.by]);
+  if (l.age) spec.push(["Age", l.age]);
+  if (l.mode === "buy" && l.area > 0) spec.push(["Rate", "₹" + Math.round(l.price / l.area).toLocaleString("en-IN") + " / sq ft"]);
+  var sh = document.getElementById("detailSheet");
+  sh.innerHTML =
+    '<div class="art">' + art(l) + (l.sample ? '<span class="tag">Sample</span>' : '') + '</div>' +
+    '<div class="pad">' +
+      '<div class="sheet-head"><div><h2 id="dTitle">' + esc(l.title) + '</h2><div class="meta">' + esc(l.locality) + ', ' + esc(l.city) + '</div></div>' +
+      '<button class="close" type="button" data-close="detailOv" aria-label="Close">Close</button></div>' +
+      '<div class="price num">' + money(l.price, l.mode) + (l.mode === "rent" ? ' <small>/ month</small>' : '') + '</div>' +
+      '<dl class="spec num">' + spec.map(function (s) { return '<div><dt>' + s[0] + '</dt><dd>' + esc(s[1]) + '</dd></div>'; }).join("") + '</dl>' +
+      (l.desc ? '<p style="margin:0">' + esc(l.desc) + '</p>' : '') +
+      ((l.amen && l.amen.length) ? '<div class="chips">' + l.amen.map(function (a) { return '<span class="chip">' + esc(a) + '</span>'; }).join("") + '</div>' : '') +
+      '<form class="enq" id="enqForm" data-id="' + esc(l.id) + '">' +
+        '<h3>Ask about this property</h3>' +
+        '<div class="row">' +
+          '<label class="f" for="eName">Your name<input class="in" id="eName" required maxlength="60" autocomplete="name"></label>' +
+          '<label class="f" for="ePhone">Phone<input class="in" id="ePhone" required maxlength="15" inputmode="tel" autocomplete="tel"></label>' +
+        '</div>' +
+        '<label class="f" for="eMsg">Message<textarea class="in" id="eMsg" maxlength="300">I would like to visit this property. Please share a convenient time.</textarea></label>' +
+        '<div><button class="btn" type="submit">Prepare WhatsApp message</button></div>' +
+        '<div id="enqOut"></div>' +
+      '</form>' +
+    '</div>';
+  openOv("detailOv");
+}
+
+document.addEventListener("submit", function (e) {
+  if (e.target.id === "enqForm") {
+    e.preventDefault();
+    var l = find(e.target.getAttribute("data-id")); if (!l) return;
+    var name = document.getElementById("eName").value.trim(), phone = document.getElementById("ePhone").value.trim(), msg = document.getElementById("eMsg").value.trim();
+    var text = "Hi, I am " + name + " (" + phone + ").\nProperty: " + l.title + ", " + l.locality + ", " + l.city + " (" + money(l.price, l.mode) + (l.mode === "rent" ? "/month" : "") + ").\n" + msg;
+    var out = document.getElementById("enqOut");
+    out.innerHTML = '<div class="ready"><pre id="enqText">' + esc(text) + '</pre><div class="actions">' +
+      '<a class="btn" href="' + esc(waLink(text)) + '" target="_blank" rel="noopener">Open WhatsApp</a>' +
+      '<button class="btn ghost" type="button" id="copyEnq">Copy message</button></div>' +
+      '<p class="note">Opening WhatsApp only prepares the message. It is sent when you press send there.</p></div>';
+    document.getElementById("copyEnq").addEventListener("click", function () {
+      var done = function () { toast("Message copied"); };
+      try { navigator.clipboard.writeText(text).then(done, function () { selectText("enqText"); }); } catch (err) { selectText("enqText"); }
+    });
+  }
+  if (e.target.id === "addForm") {
+    e.preventDefault();
+    var v = function (id) { return document.getElementById(id).value.trim(); };
+    var item = { id: "u" + Date.now(), sample: false, mode: v("aMode"), type: v("aType"), title: v("aTitleIn"), locality: v("aLoc"), city: v("aCity"),
+      bhk: Number(v("aBhk")) || 0, price: Number(v("aPrice")), area: Number(v("aArea")), floor: v("aFloor"), furn: v("aFurn"), age: v("aAge"), desc: v("aDesc"), amen: [], t: 99,
+      by: v("aBy"), owner: v("aName"), phone: v("aPhone") };
+    var list = load(); list.unshift(item);
+    var ok = save(list);
+    closeOv("addOv"); e.target.reset(); document.getElementById("aPricePreview").textContent = "";
+    S.mode = item.mode; syncMode(); render();
+    toast(ok ? "Listing saved in this browser" : "Listing shown, but this browser blocked saving");
+  }
+});
+function selectText(id) {
+  var el = document.getElementById(id); if (!el) return;
+  var r = document.createRange(); r.selectNodeContents(el);
+  var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  toast("Press and hold to copy");
+}
+var toastTimer;
+function toast(t) { var el = document.getElementById("toast"); el.textContent = t; el.hidden = false; clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.hidden = true; }, 2600); }
+
+/* ---------- Wiring ---------- */
+function syncMode() {
+  document.querySelectorAll(".tabs button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.getAttribute("data-mode") === S.mode)); });
+  S.budget = ""; fillBudget();
+}
+document.querySelectorAll(".tabs button[data-mode]").forEach(function (b) {
+  b.addEventListener("click", function () {
+    S.mode = b.getAttribute("data-mode"); syncMode(); render();
+    var el = document.getElementById("listings");
+    var calm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (el && el.scrollIntoView) el.scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "start" });
+    toast(S.mode === "buy" ? "Showing properties for sale" : "Showing properties for rent");
+  });
+});
+document.getElementById("aWa").addEventListener("click", function () {
+  var f = document.getElementById("addForm");
+  if (!f.reportValidity()) return;
+  var v = function (id) { return document.getElementById(id).value.trim(); };
+  var m = v("aMode"), p = Number(v("aPrice"));
+  var text = "Hi, I want to list a property.\nI am the " + v("aBy") + ": " + v("aName") + " (" + v("aPhone") + ").\n" +
+    (m === "rent" ? "For rent" : "For sale") + ": " + v("aTitleIn") + ", " + v("aLoc") + ", " + v("aCity") + ".\n" +
+    v("aType") + ", " + v("aBhk") + " BHK, " + v("aArea") + " sq ft carpet, " + money(p, m) + (m === "rent" ? "/month" : "") + ".\n" +
+    (v("aFloor") ? "Floor: " + v("aFloor") + ". " : "") + (v("aDesc") ? v("aDesc") : "");
+  window.open(waLink(text), "_blank", "noopener") || toast("Allow pop-ups, or copy the details from the listing you saved");
+});
+document.getElementById("searchForm").addEventListener("submit", function (e) { e.preventDefault(); });
+[["q", "q"], ["bhk", "bhk"], ["ptype", "type"], ["budget", "budget"], ["sort", "sort"]].forEach(function (p) {
+  document.getElementById(p[0]).addEventListener("input", function (e) { S[p[1]] = e.target.value; render(); });
+});
+document.getElementById("grid").addEventListener("click", function (e) {
+  var c = e.target.closest(".card"); if (c) openDetail(c.getAttribute("data-id"));
+});
+document.getElementById("openAdd").addEventListener("click", function () { openOv("addOv"); });
+document.addEventListener("click", function (e) {
+  var sl = e.target.closest("[data-sell]"); if (sl) { openOv("addOv"); return; }
+  var c = e.target.closest("[data-close]"); if (c) { closeOv(c.getAttribute("data-close")); return; }
+  if (e.target.classList && e.target.classList.contains("overlay")) closeOv(e.target.id);
+});
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") document.querySelectorAll(".overlay.open").forEach(function (o) { closeOv(o.id); });
+});
+document.getElementById("aPrice").addEventListener("input", function (e) {
+  var n = Number(e.target.value), m = document.getElementById("aMode").value;
+  document.getElementById("aPricePreview").textContent = n > 0 ? "Will show as " + money(n, m) + (m === "rent" ? " per month" : "") : "";
+});
+
+/* ---------- Boot ---------- */
+document.getElementById("brandName").textContent = CONFIG.brand;
+document.getElementById("brandFoot").textContent = CONFIG.brand;
+document.getElementById("tagHero").textContent = CONFIG.tagline;
+document.getElementById("tagFoot").textContent = CONFIG.tagline;
+document.getElementById("phoneShow").textContent = CONFIG.phoneDisplay;
+document.getElementById("reraBox").textContent = CONFIG.reraNumber ? "MahaRERA agent registration: " + CONFIG.reraNumber : "RERA agent registration number: to be added after registration";
+document.getElementById("mWa").setAttribute("href", waLink("Hi, I have a question about a property on your website."));
+fillBudget();
+render();
+</script>
